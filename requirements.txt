@@ -1,0 +1,14 @@
+
+
+
+fastapi 
+uvicorn
+openai
+pdfplumber
+python-docx
+spacy
+langchain
+chromadb
+langchain-community
+huggingface-hub
+python-dotenv
