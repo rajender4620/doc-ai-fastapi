@@ -5,5 +5,5 @@
 # ```txt
 # __pycache__/
 # *.pyc
-# .env
+.env
 # chroma_db/

@@ -1,10 +1,14 @@
 from fastapi import FastAPI, File, UploadFile
+from langchain_chroma import Chroma
 from openai import OpenAI
 import pdfplumber
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from docx import Document
 import spacy
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = FastAPI()
 nlp = spacy.load("en_core_web_sm")
@@ -17,7 +21,7 @@ vector_db = Chroma(
 )
 
 client = OpenAI(
-    api_key="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",
+    api_key=os.getenv("OPEN_AI_KEY"),
     base_url="https://openrouter.ai/api/v1",
 )
 
@@ -35,7 +39,8 @@ async def getUserPdfOrDoc(file: UploadFile = File(...)):
     if filename.endswith(".pdf"):
         # Read PDF
         with pdfplumber.open(file.file) as pdf:
-            content = "\n".join(page.extract_text() or "" for page in pdf.pages)
+            content = "\n".join(page.extract_text()
+                                or "" for page in pdf.pages)
     elif filename.endswith(".docx"):
         # Read DOCX
         doc = Document(file.file)
@@ -81,7 +86,8 @@ async def getUserPdfOrDoc(file: UploadFile = File(...)):
         ],
     )
     risks_text = risks_response.choices[0].message.content
-    risks = [line.strip("-• \n") for line in risks_text.splitlines() if line.strip()]
+    risks = [line.strip("-• \n")
+             for line in risks_text.splitlines() if line.strip()]
 
     # Store in vector DB
     metadata = {
@@ -108,5 +114,6 @@ async def search_docs(q: str):
 
     response = []
     for doc in results:
-        response.append({"summary": doc.page_content, "metadata": doc.metadata})
+        response.append({"summary": doc.page_content,
+                        "metadata": doc.metadata})
     return {"results": response}
